@@ -4,7 +4,7 @@ using WebHocTap;
 using WebHocTap.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<Context>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Context") ?? throw new InvalidOperationException("Connection string 'Connection' not found.")));
+builder.Services.AddDbContext<Context>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Context")));
 
 // Add services to the container.
 
