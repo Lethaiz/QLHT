@@ -1,135 +1,75 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+
 using Microsoft.EntityFrameworkCore;
+
 using WebHocTap.Data;
 using WebHocTap.Entity;
-
+using WebHocTap.Respository;
+using AutoMapper;
+using WebHocTap.DTO;
 namespace WebHocTap.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly Context _context;
-
-        public AdminController(Context context)
+        private IEAdminRespository _AdRespo;
+        private IMapper admap;
+        public AdminController(IEAdminRespository adrespo, IMapper mapper)
         {
-            _context = context;
+            admap = mapper;
+            _AdRespo = adrespo;
+
         }
 
-        // GET: api/Admins
+        //GET
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
+        public async Task<ActionResult<List<AdminDTO>>> getAdmin()
         {
-            if (_context.Admins == null)
+            var model = _AdRespo.GetAll();
+            if (model == null)
             {
-                return NotFound();
+                return new List<AdminDTO>();
             }
-            return await _context.Admins.ToListAsync();
+            return model.ToList();
         }
 
-        // GET: api/Admins/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Admin>> GetAdmin(string id)
-        {
-            if (_context.Admins == null)
-            {
-                return NotFound();
-            }
-            var admin = await _context.Admins.FindAsync(id);
-
-            if (admin == null)
-            {
-                return NotFound();
-            }
-
-            return admin;
-        }
-
-        // PUT: api/Admins/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAdmin(string id, Admin admin)
-        {
-            if (id != admin.teacherId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(admin).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AdminExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Admins
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //POST
         [HttpPost]
-        public async Task<ActionResult<Admin>> PostAdmin(Admin admin)
+        public ActionResult<bool> AddAdmin(AdminDTO model)
         {
-            if (_context.Admins == null)
-            {
-                return Problem("Entity set 'Context.Admins'  is null.");
-            }
-            _context.Admins.Add(admin);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (AdminExists(admin.teacherId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var check = _AdRespo.Insert(model);
+            _AdRespo.Save();
+            return check;
 
-            return CreatedAtAction("GetAdmin", new { id = admin.teacherId }, admin);
         }
 
-        // DELETE: api/Admins/5
+        //PUT
+        [HttpPut]
+        public ActionResult<bool> UpdateAdmin(AdminDTO model)
+        {
+            var check = _AdRespo.Update(model);
+            _AdRespo.Save();
+            return check;
+
+        }
+
+        //DELETE
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAdmin(string id)
+        public ActionResult<bool> DeleteAdmin(string id)
         {
-            if (_context.Admins == null)
-            {
-                return NotFound();
-            }
-            var admin = await _context.Admins.FindAsync(id);
-            if (admin == null)
-            {
-                return NotFound();
-            }
+            var check = _AdRespo.Delete(id);
+            
+            _AdRespo.Save();
+            return check;
 
-            _context.Admins.Remove(admin);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool AdminExists(string id)
-        {
-            return (_context.Admins?.Any(e => e.teacherId == id)).GetValueOrDefault();
         }
     }
 }
-
